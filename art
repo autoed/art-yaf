@@ -1,0 +1,266 @@
+#!/usr/bin/env php
+<?php
+
+define('ART_START', microtime(true));
+
+$artVersion = <<<ART
+Welcome to this world
+            _   
+  __ _ _ __| |_ 
+ / _` | '__| __|
+| (_| | |  | |_ 
+ \__,_|_|   \__|
+ 
+@代码-优雅-生成器
+@version ： 1.0
+@author  ： fomo3d.wiki@gmail.com
+.
+ART;
+$artHelp = <<<ART
+@代码-优雅-生成器
+@Art 使用说明
+@example :  
+1、php art m:你的微服:模型名
+2、php art c:你的微服:控制器
+3、php art s:你的微服 (默认你的模块下Service.php)
+ -----------------------------------
+｜一键创建：php art a:你的微服:起个名字｜
+ -----------------------------------
+ TODO-list-notice
+ 一、创建：audiouser请遵循小驼峰法:audioUser
+ 二、注意：不要忘记，配置路由（1.0版本不支持自动配置）
+ .
+ART;
+
+$notice  = "Art提示: 你输入的参数是「%s」，请输入 -h 获取帮助.";
+$version = ['-v', '--version', '--v','-','--'];
+$help    = ['-h', '--help'];
+$core    = ['m','c','s','a'];
+$noThirdList=['s'];
+
+if (null === $argv) {
+    $argv = $_SERVER['argv'];
+}
+
+array_shift($argv);
+
+//参数收集结束(接收一个参数，多个用" : " 拼接)
+$artData = explode(':', $argv[0] ?? '');
+
+//帮助参数校验
+if (!$artData[0] || in_array($artData[0], $version)) {
+    exit($artVersion);
+} elseif (in_array($artData[0], $help)) {
+    exit($artHelp);
+}
+
+//核心参数校验
+if (!in_array($artData[0], $core)) {
+    exit(sprintf($notice, $argv[0]));
+}
+
+/**
+ * 自动构建-策略
+ */
+$youMicroName = $artData[1] ?? '';
+if (!$youMicroName) {
+    exit(sprintf($notice, $argv[0]));
+}
+$youMicroName = ucwords($youMicroName);
+
+//获取根目录
+$rootDir = `PWD`;
+$rootDir = trim($rootDir).'/application';
+
+//构建-校验
+$youDoName = $artData[2] ?? '';
+if (!$youDoName && !in_array($artData[0], $noThirdList)) {
+    exit(sprintf($notice, $argv[0]));
+}
+
+//------------------------------------
+// 自动-创建-模版 ： just for 知音楼-Yaf
+//------------------------------------
+$DYouMicroName = ucwords($youMicroName);
+$DYouDoName    = ucwords($youDoName);
+$XYouMicroName = strtolower($youMicroName);
+$XYouDoName    = strtolower($youDoName);
+//作者 && 版权时间
+$authorName    = 'lidi3';
+$authorTime    = date('Y-m-d H:i:s');
+$models4PHP = <<<model
+<?php
+
+/**
+ * Class {$DYouMicroName}_{$DYouDoName}Model
+ * @Author: {$authorName}
+ * @Date: {$authorTime}
+ */
+class {$DYouMicroName}_{$DYouDoName}Model
+{
+    protected static \${$XYouMicroName}{$DYouDoName}Table         = 't_{$XYouMicroName}_{$XYouDoName}';
+
+    /**
+     * 增加数据
+     * @param array \$data
+     * @return bool|int
+     * @Author: {$authorName}
+     * @Date: {$authorTime}
+     */
+    public static function insert(\$data)
+    {
+        if (empty(\$data)) {
+            return false;
+        }
+        \$table = self::\${$XYouMicroName}{$DYouDoName}Table;
+        \$res   = DB::table(\$table)->insert(\$data);
+        return (int)\$res;
+    }
+    
+    /**
+     * 查询数据
+     * @param array \$columns //查询列
+     * @param array \$where   //查询条件
+     * @return array|mixed
+     * @Author: {$authorName}
+     * @Date: {$authorTime}
+     */
+    public static function get(\$columns, \$where)
+    {
+        \$table = self::\${$XYouMicroName}{$DYouDoName}Table;
+        \$info  = DB::table(\$table)
+            ->select(\$columns)
+            ->where(\$where)
+            ->get();
+        if (empty(\$info)) {
+            return [];
+        }
+        return \$info;
+    }
+    
+}
+model;
+$service4PHP = <<<service
+<?php
+
+/**
+ * Class {$DYouMicroName}_ServiceModel
+ * @Author: {$authorName}
+ * @Date: {$authorTime}
+ */
+class {$DYouMicroName}_ServiceModel
+{
+    /**
+     * 增加数据
+     * @Author: {$authorName}
+     * @Date: {$authorTime}
+     */
+    public static function insert()
+    {
+        //TODO you code
+    }
+    
+    /**
+     * 查询数据
+     * @Author: {$authorName}
+     * @Date: {$authorTime}
+     */
+    public static function get()
+    {
+        //TODO you code
+    }
+    
+}
+service;
+$controller4PHP = <<<controller
+<?php
+
+/**
+ * Class {$DYouDoName}Controller
+ * @Author: {$authorName}
+ * @Date: {$authorTime}
+ */
+class {$DYouDoName}Controller extends BasicController
+{
+    /**
+     * XX 业务接口
+     * @Author: {$authorName}
+     * @Date: {$authorTime}
+     */
+    public function getAction()
+    {
+        /** start 接收参数 */
+        \$this->validate();
+        \$xxx = \$this->get('XX', 0);
+        \$user        = Yaf_Registry::get('user');
+        if (!\$user) {
+            show_errors('ERR_USER_NOT_EXIST');
+        }
+        /** end  接收参数 */
+         
+        //TODO you code
+        
+        //返回数据
+        return \$this->getResponse()->setBody(Qsuccess());
+    }
+    
+}
+controller;
+//------------------------------------
+// 自动-创建-配置 规则
+//------------------------------------
+$rules = [
+    'm'=>['middleDir'=>'models/'.$youMicroName, 'phpTmp'=>$models4PHP]
+    ,'c'=>['middleDir'=>'modules/'.$youMicroName.'/controllers', 'phpTmp'=>$controller4PHP]
+    ,'s'=>['middleDir'=>'models/'.$youMicroName, 'phpTmp'=>$service4PHP, 'serviceName'=>'Service.php']
+];
+
+/**
+ * 自动-创建
+ */
+if ($artData[0]!='a' && $rules[$artData[0]]) {
+    /**
+     * 单个创建
+     */
+    $youDoName = $youDoName ? $DYouDoName.'.php' : $rules[$artData[0]]['serviceName'];
+    $fileName  = $rootDir .'/'. $rules[$artData[0]]['middleDir'] .'/'.$youDoName;
+    if (file_exists($fileName)) {
+        exit('单个创建:已存在,请核对：'.$rules[$artData[0]]['middleDir'] .'/'.$youDoName);
+    }
+    if (!is_dir($rootDir .'/'. $rules[$artData[0]]['middleDir'])) {
+        mkdir($rootDir .'/'. $rules[$artData[0]]['middleDir'],0777, true);
+    }
+    `touch {$fileName}`; 
+    $strPHP = $rules[$artData[0]]['phpTmp'];
+    file_put_contents($fileName, $strPHP);
+    echo '恭喜你，单个创建，成功：'.$rules[$artData[0]]['middleDir'] .'/'.$youDoName.PHP_EOL;
+
+} else {
+    /**
+     * 批量创建
+     */
+    array_map(function ($item) use ($rootDir, $DYouDoName, $youMicroName) {
+        $youDoName = $item['serviceName'] ?? $DYouDoName.'.php';
+        $fileName  = $rootDir .'/'. $item['middleDir'] .'/'.$youDoName;
+        if (file_exists($fileName)) {
+            echo '批量创建:已存在,请核对：'.$item['middleDir'] .'/'.$youDoName.PHP_EOL;
+            return false;
+        }
+        if (!is_dir($rootDir .'/'. $item['middleDir'])) {
+            mkdir($rootDir .'/'. $item['middleDir'],0777, true);
+        }
+        `touch {$fileName}`;
+        $strPHP = $item['phpTmp'];
+        file_put_contents($fileName, $strPHP);
+        echo '成功：'.$item['middleDir'] .'/'.$youDoName.PHP_EOL;
+        return true;
+    }, $rules);
+    echo '恭喜你，批量创建，完成'.PHP_EOL;
+}
+
+
+
+
+
+
+

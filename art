@@ -1,6 +1,8 @@
 #!/usr/bin/env php
 <?php
-
+/**
+ * @since https://github.com/autoed/art-yaf
+ */
 define('ART_START', microtime(true));
 
 $artVersion = <<<ART
